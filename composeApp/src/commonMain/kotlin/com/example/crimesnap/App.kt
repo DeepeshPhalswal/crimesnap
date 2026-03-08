@@ -20,7 +20,6 @@ enum class Screen {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
     
@@ -252,4 +251,39 @@ fun HistoryScreen(historyItems: List<String>, onBack: () -> Unit) {
 
 fun getCurrentDate(): String {
     return "Recent Date"
+}
+
+@Preview
+@Composable
+fun AppPreview() {
+    App()
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    MaterialTheme {
+        HomeScreen(onNavigateToHistory = {}, onReportCrime = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ReportScreenPreview() {
+    MaterialTheme {
+        ReportScreen(onBack = {}, onSubmit = { _, _, _ -> })
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HistoryScreenPreview() {
+    MaterialTheme {
+        val sampleHistory = listOf(
+            "Theft reported at Central Park on Oct 12, 2023",
+            "Vandalism reported at 5th Ave on Nov 5, 2023",
+            "Suspicious activity reported on Dec 1, 2023"
+        )
+        HistoryScreen(historyItems = sampleHistory, onBack = {})
+    }
 }
