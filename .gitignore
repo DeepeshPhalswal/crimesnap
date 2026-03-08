@@ -1,0 +1,36 @@
+# IDE and Gradle
+.idea/
+.gradle/
+build/
+**/build/
+*.iml
+.kotlin
+local.properties
+
+# Android
+.externalNativeBuild/
+.cxx/
+captures/
+*.apk
+*.aar
+
+# iOS
+# General
+.DS_Store
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+*.xcresult
+
+# Xcode project settings
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+
+# Kotlin Multiplatform specific
+.konan/
+composeApp/build/
+iosApp/build/
+iosApp/DerivedData/
