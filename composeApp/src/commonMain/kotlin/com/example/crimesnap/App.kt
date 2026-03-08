@@ -78,6 +78,15 @@ fun App() {
                         }
                     )
                     NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Sos, contentDescription = null) },
+                        label = { Text("SOS Emergency") },
+                        selected = false,
+                        onClick = {
+                            // Instant SOS trigger
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
                         icon = { Icon(Icons.Default.Info, contentDescription = null) },
                         label = { Text("About App") },
                         selected = currentScreen == Screen.About,
@@ -91,7 +100,6 @@ fun App() {
                         label = { Text("Settings") },
                         selected = false,
                         onClick = {
-                            // Placeholder for settings
                             scope.launch { drawerState.close() }
                         }
                     )
@@ -105,11 +113,10 @@ fun App() {
                         )
                     }
                     NavigationDrawerItem(
-                        icon = { Icon(Icons.Default.Logout, contentDescription = null) },
+                        icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
                         label = { Text("Logout") },
                         selected = false,
                         onClick = {
-                            // Placeholder for logout
                             scope.launch { drawerState.close() }
                         }
                     )
@@ -214,6 +221,28 @@ fun HomeScreen(onMenuClick: () -> Unit, onNavigateToHistory: () -> Unit, onRepor
                     text = "VIEW REPORT HISTORY",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { /* Rapid SOS trigger */ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Icon(Icons.Default.Sos, contentDescription = null, modifier = Modifier.size(32.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "SOS EMERGENCY",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
         }
