@@ -6,10 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,17 +15,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.launch
 
 enum class Screen {
-    Home, History, Report
+    Home, History, Report, Profile, About
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     
-    // In-memory history list. For "lifetime" history, we will later connect this to a database like Room.
     val reportHistory = remember { 
         mutableStateListOf(
             "Theft reported at Central Park on Oct 12, 2023",
@@ -38,27 +37,111 @@ fun App() {
     }
 
     MaterialTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            when (currentScreen) {
-                Screen.Home -> HomeScreen(
-                    onNavigateToHistory = { currentScreen = Screen.History },
-                    onReportCrime = { currentScreen = Screen.Report }
-                )
-                Screen.History -> HistoryScreen(
-                    historyItems = reportHistory,
-                    onBack = { currentScreen = Screen.Home }
-                )
-                Screen.Report -> ReportScreen(
-                    onBack = { currentScreen = Screen.Home },
-                    onSubmit = { type, location, _ ->
-                        val report = "$type reported at $location on ${getCurrentDate()}"
-                        reportHistory.add(0, report)
-                        currentScreen = Screen.Home
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "CrimeSnap",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    HorizontalDivider()
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Dashboard, contentDescription = null) },
+                        label = { Text("Dashboard") },
+                        selected = currentScreen == Screen.Home,
+                        onClick = {
+                            currentScreen = Screen.Home
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                        label = { Text("Profile") },
+                        selected = currentScreen == Screen.Profile,
+                        onClick = {
+                            currentScreen = Screen.Profile
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.History, contentDescription = null) },
+                        label = { Text("History") },
+                        selected = currentScreen == Screen.History,
+                        onClick = {
+                            currentScreen = Screen.History
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Info, contentDescription = null) },
+                        label = { Text("About App") },
+                        selected = currentScreen == Screen.About,
+                        onClick = {
+                            currentScreen = Screen.About
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                        label = { Text("Settings") },
+                        selected = false,
+                        onClick = {
+                            // Placeholder for settings
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    Spacer(Modifier.weight(1f))
+                    HorizontalDivider()
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Version 1.0.0",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Logout, contentDescription = null) },
+                        label = { Text("Logout") },
+                        selected = false,
+                        onClick = {
+                            // Placeholder for logout
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                when (currentScreen) {
+                    Screen.Home -> HomeScreen(
+                        onMenuClick = { scope.launch { drawerState.open() } },
+                        onNavigateToHistory = { currentScreen = Screen.History },
+                        onReportCrime = { currentScreen = Screen.Report }
+                    )
+                    Screen.History -> HistoryScreen(
+                        historyItems = reportHistory,
+                        onBack = { currentScreen = Screen.Home }
+                    )
+                    Screen.Report -> ReportScreen(
+                        onBack = { currentScreen = Screen.Home },
+                        onSubmit = { type, location, _ ->
+                            val report = "$type reported at $location on ${getCurrentDate()}"
+                            reportHistory.add(0, report)
+                            currentScreen = Screen.Home
+                        }
+                    )
+                    Screen.Profile -> ProfileScreen(onBack = { currentScreen = Screen.Home })
+                    Screen.About -> AboutScreen(onBack = { currentScreen = Screen.Home })
+                }
             }
         }
     }
@@ -66,11 +149,16 @@ fun App() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onNavigateToHistory: () -> Unit, onReportCrime: () -> Unit) {
+fun HomeScreen(onMenuClick: () -> Unit, onNavigateToHistory: () -> Unit, onReportCrime: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("CrimeSnap", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -429,6 +517,105 @@ fun HistoryScreen(historyItems: List<String>, onBack: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Profile") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = null,
+                modifier = Modifier.size(120.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Guest User", style = MaterialTheme.typography.headlineMedium)
+            Text(text = "guest@example.com", style = MaterialTheme.typography.bodyMedium)
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Account Details", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "Join Date: Oct 2023")
+                    Text(text = "Reports Filed: 3")
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AboutScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("About CrimeSnap") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Our Mission",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "CrimeSnap is a community-driven incident reporting tool designed to empower citizens and improve local safety. By providing verified, geo-tagged reports with multi-media evidence, we help authorities respond faster and more effectively."
+            )
+            
+            Text(
+                text = "Key Features",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "• Auto-location tagging for integrity\n" +
+                       "• Photo, Video, and Audio evidence\n" +
+                       "• Community safety dashboard\n" +
+                       "• Real-time incident updates"
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "© 2023 CrimeSnap Team",
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
 fun getCurrentDate(): String {
     return "Recent Date"
 }
@@ -443,7 +630,7 @@ fun AppPreview() {
 @Composable
 fun HomeScreenPreview() {
     MaterialTheme {
-        HomeScreen(onNavigateToHistory = {}, onReportCrime = {})
+        HomeScreen(onMenuClick = {}, onNavigateToHistory = {}, onReportCrime = {})
     }
 }
 
